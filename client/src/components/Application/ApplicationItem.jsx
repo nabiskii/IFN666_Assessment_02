@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, Text, Badge, Group, Button } from '@mantine/core';
 
 const statusColors = {
@@ -17,6 +18,7 @@ function ApplicationItem({ application, onEdit, onDelete }) {
       <Text size="sm" c="dimmed">Applicant: {application.applicant?.username || 'Unknown'}</Text>
       <Text size="sm" mt="xs">{application.message}</Text>
       <Group mt="md">
+        <Button variant="outline" size="xs" component={Link} to={`/applications/${application._id}`}>View</Button>
         <Button variant="outline" size="xs" onClick={() => onEdit(application)}>Edit</Button>
         <Button variant="outline" size="xs" color="red" onClick={() => onDelete(application)}>Delete</Button>
       </Group>

@@ -3,6 +3,7 @@ const AuthRouter = require("./auth");
 const ShelterRouter = require("./shelter");
 const PetRouter = require("./pet");
 const ApplicationRouter = require("./application");
+const UserRouter = require("./user");
 
 const router = express.Router();
 
@@ -10,5 +11,6 @@ router.use('/auth', AuthRouter);
 router.use('/shelters', ShelterRouter);
 router.use('/pets', PetRouter);
 router.use('/applications', ApplicationRouter);
+router.use('/users', UserRouter);
 
 module.exports = router;

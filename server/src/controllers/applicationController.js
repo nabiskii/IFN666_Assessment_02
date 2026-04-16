@@ -138,6 +138,19 @@ exports.delete = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Application deleted successfully" });
 });
 
+// GET applications by user (nested route)
+exports.listByUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.userId).exec();
+    if (user === null) {
+        return res.status(404).json({ error: "User not found" });
+    }
+
+    const applications = await Application.find({ applicant: req.params.userId })
+        .populate({ path: "pet", select: "name species status" })
+        .exec();
+    res.json(applications);
+});
+
 // GET applications by pet (nested route)
 exports.listByPet = asyncHandler(async (req, res) => {
     const pet = await Pet.findById(req.params.petId).exec();

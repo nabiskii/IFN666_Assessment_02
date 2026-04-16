@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { SimpleGrid, Card, Text, Group, Button } from '@mantine/core';
 
 function ShelterList({ shelters, onEdit, onDelete }) {
@@ -13,6 +14,7 @@ function ShelterList({ shelters, onEdit, onDelete }) {
           <Text size="sm" c="dimmed">{shelter.email}</Text>
           {shelter.description && <Text size="sm" mt="xs">{shelter.description}</Text>}
           <Group mt="md">
+            <Button variant="outline" size="xs" component={Link} to={`/shelters/${shelter._id}`}>View</Button>
             <Button variant="outline" size="xs" onClick={() => onEdit(shelter)}>Edit</Button>
             <Button variant="outline" size="xs" color="red" onClick={() => onDelete(shelter)}>Delete</Button>
           </Group>

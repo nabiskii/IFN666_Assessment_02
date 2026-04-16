@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, Text, Badge, Group, Button } from '@mantine/core';
 
 const statusColors = {
@@ -18,6 +19,7 @@ function PetItem({ pet, onEdit, onDelete }) {
       <Text size="sm" c="dimmed">Shelter: {pet.shelter?.name || 'Unknown'}</Text>
       <Text size="sm" mt="xs">{pet.description}</Text>
       <Group mt="md">
+        <Button variant="outline" size="xs" component={Link} to={`/pets/${pet._id}`}>View</Button>
         <Button variant="outline" size="xs" onClick={() => onEdit(pet)}>Edit</Button>
         <Button variant="outline" size="xs" color="red" onClick={() => onDelete(pet)}>Delete</Button>
       </Group>
