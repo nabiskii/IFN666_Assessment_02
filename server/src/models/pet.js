@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const paginate = require("mongoose-paginate-v2");
 
 const petSchema = new mongoose.Schema({
     name: {
@@ -38,5 +39,7 @@ const petSchema = new mongoose.Schema({
         required: true,
     }
 });
+
+petSchema.plugin(paginate);
 
 module.exports = mongoose.model("Pet", petSchema);

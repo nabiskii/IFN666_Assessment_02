@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
-const { body, validationResult } = require("express-validator");
+const { body, query, validationResult } = require("express-validator");
 const Shelter = require("../models/shelter");
 const Pet = require("../models/pet");
+const generatePaginationLinks = require("../utils/generatePaginationLinks");
 
 const shelterValidator = () => {
     return [
@@ -24,10 +25,35 @@ const shelterValidator = () => {
 };
 
 // GET all shelters
-exports.list = asyncHandler(async (req, res) => {
-    const allShelters = await Shelter.find().sort({ name: 1 }).exec();
-    res.json(allShelters);
-});
+exports.list = [
+    query('search').optional().trim(),
+    query('sort').optional().isIn(['name', '-name', 'address', '-address']).withMessage('Invalid sort field'),
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const search = req.query.search || '';
+        const filter = search
+            ? { name: new RegExp(search, 'i') }
+            : {};
+
+        const sortField = req.query.sort || 'name';
+        const sortOrder = sortField.startsWith('-') ? -1 : 1;
+        const sortKey = sortField.replace(/^-/, '');
+
+        const page = await Shelter.paginate(filter, {
+            page: req.paginate.page,
+            limit: req.paginate.limit,
+            sort: { [sortKey]: sortOrder },
+        });
+
+        res.status(200)
+            .links(generatePaginationLinks(req.originalUrl, req.paginate.page, page.totalPages, req.paginate.limit))
+            .json(page.docs);
+    }),
+];
 
 // GET shelter by ID
 exports.detail = asyncHandler(async (req, res) => {

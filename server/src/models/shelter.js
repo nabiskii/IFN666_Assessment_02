@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const paginate = require("mongoose-paginate-v2");
 
 const shelterSchema = new mongoose.Schema({
     name: {
@@ -21,5 +22,7 @@ const shelterSchema = new mongoose.Schema({
         type: String,
     }
 });
+
+shelterSchema.plugin(paginate);
 
 module.exports = mongoose.model("Shelter", shelterSchema);

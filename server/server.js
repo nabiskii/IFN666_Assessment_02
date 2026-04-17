@@ -5,7 +5,6 @@ const cors = require("cors");
 var fs = require('fs');
 var morgan = require('morgan');
 var path = require('path');
-
 const indexRouter = require("./src/routes/index");
 
 const app = express();

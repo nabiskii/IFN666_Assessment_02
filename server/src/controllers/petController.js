@@ -1,9 +1,10 @@
 const asyncHandler = require("express-async-handler");
-const { body, validationResult } = require("express-validator");
+const { body, query, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const Pet = require("../models/pet");
 const Shelter = require("../models/shelter");
 const Application = require("../models/application");
+const generatePaginationLinks = require("../utils/generatePaginationLinks");
 
 const petValidator = () => {
     return [
@@ -38,13 +39,36 @@ const petValidator = () => {
 };
 
 // GET all pets
-exports.list = asyncHandler(async (req, res) => {
-    const allPets = await Pet.find()
-        .populate({ path: "shelter", select: "name" })
-        .sort({ name: 1 })
-        .exec();
-    res.json(allPets);
-});
+exports.list = [
+    query('search').optional().trim(),
+    query('sort').optional().isIn(['name', '-name', 'species', '-species', 'age', '-age']).withMessage('Invalid sort field'),
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const search = req.query.search || '';
+        const filter = search
+            ? { name: new RegExp(search, 'i') }
+            : {};
+
+        const sortField = req.query.sort || 'name';
+        const sortOrder = sortField.startsWith('-') ? -1 : 1;
+        const sortKey = sortField.replace(/^-/, '');
+
+        const page = await Pet.paginate(filter, {
+            page: req.paginate.page,
+            limit: req.paginate.limit,
+            sort: { [sortKey]: sortOrder },
+            populate: { path: "shelter", select: "name" },
+        });
+
+        res.status(200)
+            .links(generatePaginationLinks(req.originalUrl, req.paginate.page, page.totalPages, req.paginate.limit))
+            .json(page.docs);
+    }),
+];
 
 // GET pet by ID
 exports.detail = asyncHandler(async (req, res) => {

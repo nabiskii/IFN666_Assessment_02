@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const paginate = require("mongoose-paginate-v2");
 
 const applicationSchema = new mongoose.Schema({
     applicant: {
@@ -21,5 +22,7 @@ const applicationSchema = new mongoose.Schema({
         required: true,
     }
 });
+
+applicationSchema.plugin(paginate);
 
 module.exports = mongoose.model("Application", applicationSchema);
