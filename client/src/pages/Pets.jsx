@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Loader, Alert, Title } from '@mantine/core';
+import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } from '@mantine/core';
 import PetList from '../components/Pet/PetList';
 import PetForm from '../components/Pet/PetForm';
 
@@ -13,18 +13,41 @@ function Pets() {
   const [modalOpened, setModalOpened] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('name');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const isAuthenticated = !!localStorage.getItem('jwt');
 
   const fetchPets = async () => {
     setLoading(true);
     try {
+      const params = new URLSearchParams({ page, limit: 10, sort });
+      if (search) params.append('search', search);
       const [petsRes, sheltersRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/pets`),
+        fetch(`${API_BASE_URL}/pets?${params}`),
         fetch(`${API_BASE_URL}/shelters`),
       ]);
       const petsData = await petsRes.json();
       const sheltersData = await sheltersRes.json();
       setPets(petsData);
       setShelters(sheltersData);
+
+      const linkHeader = petsRes.headers.get('Link');
+      if (linkHeader) {
+        const links = {};
+        linkHeader.split(',').forEach(link => {
+          const match = link.match(/<([^>]+)>; rel="([^"]+)"/);
+          if (match) { links[match[2]] = match[1]; }
+        });
+        if (links.last) {
+          const lastUrl = new URL(links.last, window.location.origin);
+          setTotalPages(parseInt(lastUrl.searchParams.get('page')) || 1);
+        }
+      } else {
+        setTotalPages(1);
+      }
     } catch (err) {
       setError('Failed to fetch pets');
     } finally {
@@ -34,12 +57,18 @@ function Pets() {
 
   useEffect(() => {
     fetchPets();
-  }, []);
+  }, [page, sort]);
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchPets();
+  };
 
   const handleCreate = async (petData) => {
+    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/pets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(petData),
     });
     if (response.ok) {
@@ -49,9 +78,10 @@ function Pets() {
   };
 
   const handleUpdate = async (petData) => {
+    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/pets/${selectedPet._id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(petData),
     });
     if (response.ok) {
@@ -61,8 +91,10 @@ function Pets() {
   };
 
   const handleDelete = async (pet) => {
+    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/pets/${pet._id}`, {
       method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     if (response.ok) fetchPets();
   };
@@ -85,12 +117,40 @@ function Pets() {
   return (
     <>
       <Title order={2} mb="md">Pets</Title>
-      <Button onClick={openCreateModal} mb="md">Add Pet</Button>
+      <Group mb="md" grow preventGrowOverflow={false} wrap="wrap">
+        <TextInput
+          placeholder="Search pets..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          style={{ flex: 1, minWidth: 200 }}
+        />
+        <Select
+          value={sort}
+          onChange={setSort}
+          data={[
+            { value: 'name', label: 'Name (A-Z)' },
+            { value: '-name', label: 'Name (Z-A)' },
+            { value: 'species', label: 'Species (A-Z)' },
+            { value: '-species', label: 'Species (Z-A)' },
+            { value: 'age', label: 'Age (Low-High)' },
+            { value: '-age', label: 'Age (High-Low)' },
+          ]}
+          style={{ minWidth: 150 }}
+        />
+        <Button onClick={handleSearch} style={{ minWidth: 100 }}>Search</Button>
+      </Group>
+      {isAuthenticated && <Button onClick={openCreateModal} mb="md">Add Pet</Button>}
       <PetList
         pets={pets}
-        onEdit={openUpdateModal}
-        onDelete={handleDelete}
+        onEdit={isAuthenticated ? openUpdateModal : null}
+        onDelete={isAuthenticated ? handleDelete : null}
       />
+      {totalPages > 1 && (
+        <Group justify="center" mt="lg">
+          <Pagination value={page} onChange={setPage} total={totalPages} />
+        </Group>
+      )}
       <PetForm
         opened={modalOpened}
         onClose={() => setModalOpened(false)}

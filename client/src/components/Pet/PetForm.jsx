@@ -1,82 +1,89 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Modal, TextInput, Textarea, Select, NumberInput, Button, Group } from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 function PetForm({ opened, onClose, isUpdateMode, selectedPet, shelters, onCreate, onUpdate }) {
-  const [name, setName] = useState('');
-  const [species, setSpecies] = useState('');
-  const [breed, setBreed] = useState('');
-  const [age, setAge] = useState(0);
-  const [gender, setGender] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('available');
-  const [shelter, setShelter] = useState('');
+  const form = useForm({
+    initialValues: {
+      name: '',
+      species: '',
+      breed: '',
+      age: 0,
+      gender: '',
+      description: '',
+      status: 'available',
+      shelter: '',
+    },
+    validate: {
+      name: (value) => (value.length === 0 ? 'Name is required' : null),
+      species: (value) => (value ? null : 'Species is required'),
+      breed: (value) => (value.length === 0 ? 'Breed is required' : null),
+      age: (value) => (value < 0 ? 'Age must be a positive number' : null),
+      gender: (value) => (value ? null : 'Gender is required'),
+      description: (value) => (value.length === 0 ? 'Description is required' : null),
+      shelter: (value) => (value ? null : 'Shelter is required'),
+    },
+  });
 
   useEffect(() => {
     if (isUpdateMode && selectedPet) {
-      setName(selectedPet.name || '');
-      setSpecies(selectedPet.species || '');
-      setBreed(selectedPet.breed || '');
-      setAge(selectedPet.age || 0);
-      setGender(selectedPet.gender || '');
-      setDescription(selectedPet.description || '');
-      setStatus(selectedPet.status || 'available');
-      setShelter(selectedPet.shelter?._id || selectedPet.shelter || '');
+      form.setValues({
+        name: selectedPet.name || '',
+        species: selectedPet.species || '',
+        breed: selectedPet.breed || '',
+        age: selectedPet.age || 0,
+        gender: selectedPet.gender || '',
+        description: selectedPet.description || '',
+        status: selectedPet.status || 'available',
+        shelter: selectedPet.shelter?._id || selectedPet.shelter || '',
+      });
     } else {
-      setName('');
-      setSpecies('');
-      setBreed('');
-      setAge(0);
-      setGender('');
-      setDescription('');
-      setStatus('available');
-      setShelter('');
+      form.reset();
     }
   }, [isUpdateMode, selectedPet, opened]);
 
   const handleSubmit = () => {
-    const petData = { name, species, breed, age, gender, description, status, shelter };
+    if (form.validate().hasErrors) return;
     if (isUpdateMode) {
-      onUpdate(petData);
+      onUpdate(form.values);
     } else {
-      onCreate(petData);
+      onCreate(form.values);
     }
   };
 
   return (
     <Modal opened={opened} onClose={onClose} title={isUpdateMode ? 'Update Pet' : 'Add Pet'}>
-      <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <TextInput label="Name" description="Pet's name" {...form.getInputProps('name')} required />
       <Select
         label="Species"
+        description="Type of animal"
         mt="sm"
-        value={species}
-        onChange={setSpecies}
         data={['dog', 'cat', 'bird', 'rabbit', 'other']}
+        {...form.getInputProps('species')}
         required
       />
-      <TextInput label="Breed" mt="sm" value={breed} onChange={(e) => setBreed(e.target.value)} required />
-      <NumberInput label="Age" mt="sm" value={age} onChange={setAge} min={0} required />
+      <TextInput label="Breed" description="Breed or mix" mt="sm" {...form.getInputProps('breed')} required />
+      <NumberInput label="Age" description="Age in years" mt="sm" min={0} {...form.getInputProps('age')} required />
       <Select
         label="Gender"
         mt="sm"
-        value={gender}
-        onChange={setGender}
         data={['male', 'female']}
+        {...form.getInputProps('gender')}
         required
       />
-      <Textarea label="Description" mt="sm" value={description} onChange={(e) => setDescription(e.target.value)} required />
+      <Textarea label="Description" description="Describe the pet's personality and needs" mt="sm" {...form.getInputProps('description')} required />
       <Select
         label="Status"
         mt="sm"
-        value={status}
-        onChange={setStatus}
         data={['available', 'pending', 'adopted']}
+        {...form.getInputProps('status')}
       />
       <Select
         label="Shelter"
+        description="Which shelter is this pet at"
         mt="sm"
-        value={shelter}
-        onChange={setShelter}
         data={shelters.map((s) => ({ value: s._id, label: s.name }))}
+        {...form.getInputProps('shelter')}
         required
       />
       <Group justify="flex-end" mt="md">

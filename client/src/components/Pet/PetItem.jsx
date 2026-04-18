@@ -20,8 +20,8 @@ function PetItem({ pet, onEdit, onDelete }) {
       <Text size="sm" mt="xs">{pet.description}</Text>
       <Group mt="md">
         <Button variant="outline" size="xs" component={Link} to={`/pets/${pet._id}`}>View</Button>
-        <Button variant="outline" size="xs" onClick={() => onEdit(pet)}>Edit</Button>
-        <Button variant="outline" size="xs" color="red" onClick={() => onDelete(pet)}>Delete</Button>
+        {onEdit && <Button variant="outline" size="xs" onClick={() => onEdit(pet)}>Edit</Button>}
+        {onDelete && <Button variant="outline" size="xs" color="red" onClick={() => onDelete(pet)}>Delete</Button>}
       </Group>
     </Card>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Loader, Alert, Title } from '@mantine/core';
+import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } from '@mantine/core';
 import ShelterList from '../components/Shelter/ShelterList';
 import ShelterForm from '../components/Shelter/ShelterForm';
 import ShelterDeleteConfirm from '../components/Shelter/ShelterDeleteConfirm';
@@ -14,13 +14,36 @@ function Shelters() {
   const [deleteDialogOpened, setDeleteDialogOpened] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedShelter, setSelectedShelter] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('name');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const isAuthenticated = !!localStorage.getItem('jwt');
 
   const fetchShelters = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/shelters`);
+      const params = new URLSearchParams({ page, limit: 10, sort });
+      if (search) params.append('search', search);
+      const response = await fetch(`${API_BASE_URL}/shelters?${params}`);
       const data = await response.json();
       setShelters(data);
+
+      const linkHeader = response.headers.get('Link');
+      if (linkHeader) {
+        const links = {};
+        linkHeader.split(',').forEach(link => {
+          const match = link.match(/<([^>]+)>; rel="([^"]+)"/);
+          if (match) { links[match[2]] = match[1]; }
+        });
+        if (links.last) {
+          const lastUrl = new URL(links.last, window.location.origin);
+          setTotalPages(parseInt(lastUrl.searchParams.get('page')) || 1);
+        }
+      } else {
+        setTotalPages(1);
+      }
     } catch (err) {
       setError('Failed to fetch shelters');
     } finally {
@@ -30,12 +53,18 @@ function Shelters() {
 
   useEffect(() => {
     fetchShelters();
-  }, []);
+  }, [page, sort]);
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchShelters();
+  };
 
   const handleCreate = async (shelterData) => {
+    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/shelters`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(shelterData),
     });
     if (response.ok) {
@@ -45,9 +74,10 @@ function Shelters() {
   };
 
   const handleUpdate = async (shelterData) => {
+    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/shelters/${selectedShelter._id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(shelterData),
     });
     if (response.ok) {
@@ -57,8 +87,10 @@ function Shelters() {
   };
 
   const handleDelete = async () => {
+    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/shelters/${selectedShelter._id}`, {
       method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
     });
     if (response.ok) {
       setDeleteDialogOpened(false);
@@ -89,12 +121,38 @@ function Shelters() {
   return (
     <>
       <Title order={2} mb="md">Shelters</Title>
-      <Button onClick={openCreateModal} mb="md">Add Shelter</Button>
+      <Group mb="md" grow preventGrowOverflow={false} wrap="wrap">
+        <TextInput
+          placeholder="Search shelters..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          style={{ flex: 1, minWidth: 200 }}
+        />
+        <Select
+          value={sort}
+          onChange={setSort}
+          data={[
+            { value: 'name', label: 'Name (A-Z)' },
+            { value: '-name', label: 'Name (Z-A)' },
+            { value: 'address', label: 'Address (A-Z)' },
+            { value: '-address', label: 'Address (Z-A)' },
+          ]}
+          style={{ minWidth: 150 }}
+        />
+        <Button onClick={handleSearch} style={{ minWidth: 100 }}>Search</Button>
+      </Group>
+      {isAuthenticated && <Button onClick={openCreateModal} mb="md">Add Shelter</Button>}
       <ShelterList
         shelters={shelters}
-        onEdit={openUpdateModal}
-        onDelete={openDeleteDialog}
+        onEdit={isAuthenticated ? openUpdateModal : null}
+        onDelete={isAuthenticated ? openDeleteDialog : null}
       />
+      {totalPages > 1 && (
+        <Group justify="center" mt="lg">
+          <Pagination value={page} onChange={setPage} total={totalPages} />
+        </Group>
+      )}
       <ShelterForm
         opened={modalOpened}
         onClose={() => setModalOpened(false)}

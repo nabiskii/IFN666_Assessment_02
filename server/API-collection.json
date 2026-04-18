@@ -1,0 +1,276 @@
+{
+  "info": {
+    "name": "PawMatch API",
+    "description": "Pet Adoption Management REST API for IFN666 Assessment 2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/register",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test1234!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"Test1234!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shelters",
+      "item": [
+        {
+          "name": "Get All Shelters",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shelters?page=1&limit=10&sort=name"
+          }
+        },
+        {
+          "name": "Get All Shelters (Search)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shelters?search=happy&page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get Shelter by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shelters/:id"
+          }
+        },
+        {
+          "name": "Create Shelter",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/shelters",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Happy Paws Shelter\",\n  \"address\": \"123 Main St, Brisbane QLD 4000\",\n  \"phone\": \"07 1234 5678\",\n  \"email\": \"info@happypaws.com\",\n  \"description\": \"A friendly shelter dedicated to finding homes for animals in need.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Shelter",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/shelters/:id",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Happy Paws Shelter Updated\",\n  \"address\": \"456 New St, Brisbane QLD 4000\",\n  \"phone\": \"07 9876 5432\",\n  \"email\": \"contact@happypaws.com\",\n  \"description\": \"Updated description.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Shelter",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/shelters/:id",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Pets by Shelter (Nested)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/shelters/:shelterId/pets"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pets",
+      "item": [
+        {
+          "name": "Get All Pets",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/pets?page=1&limit=10&sort=name"
+          }
+        },
+        {
+          "name": "Get All Pets (Search)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/pets?search=buddy&page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get Pet by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/pets/:id"
+          }
+        },
+        {
+          "name": "Create Pet",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/pets",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Buddy\",\n  \"species\": \"dog\",\n  \"breed\": \"Golden Retriever\",\n  \"age\": 3,\n  \"gender\": \"male\",\n  \"description\": \"Friendly and energetic golden retriever who loves walks.\",\n  \"status\": \"available\",\n  \"shelter\": \"SHELTER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Pet",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/pets/:id",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Buddy\",\n  \"species\": \"dog\",\n  \"breed\": \"Golden Retriever\",\n  \"age\": 4,\n  \"gender\": \"male\",\n  \"description\": \"Updated description.\",\n  \"status\": \"available\",\n  \"shelter\": \"SHELTER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Pet",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/pets/:id",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Applications by Pet (Nested)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/pets/:petId/applications"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "Get All Applications",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/applications?page=1&limit=10&sort=status"
+          }
+        },
+        {
+          "name": "Get All Applications (Search)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/applications?search=pending&page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get Application by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/applications/:id"
+          }
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/applications",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicant\": \"USER_ID_HERE\",\n  \"pet\": \"PET_ID_HERE\",\n  \"message\": \"I would love to adopt this pet. I have a large backyard and experience with dogs.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/applications/:id",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicant\": \"USER_ID_HERE\",\n  \"pet\": \"PET_ID_HERE\",\n  \"status\": \"approved\",\n  \"message\": \"Updated application message.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Application",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/applications/:id",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Applications by User (Nested)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/:userId/applications"
+          }
+        }
+      ]
+    }
+  ]
+}

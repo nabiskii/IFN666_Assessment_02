@@ -1,24 +1,39 @@
-import { useState, useEffect } from 'react';
-import { Modal, Select, Textarea, Button, Group } from '@mantine/core';
+import { useEffect } from 'react';
+import { Modal, Select, Textarea, Button, Group, Alert } from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, pets, onCreate, onUpdate }) {
-  const [pet, setPet] = useState('');
-  const [message, setMessage] = useState('');
-  const [status, setStatus] = useState('pending');
+  const form = useForm({
+    initialValues: {
+      pet: '',
+      message: '',
+      status: 'pending',
+    },
+    validate: {
+      pet: (value) => (value ? null : 'Please select a pet'),
+      message: (value) => {
+        if (value.length === 0) return 'Message is required';
+        if (value.length < 10) return 'Message must be at least 10 characters';
+        return null;
+      },
+    },
+  });
 
   useEffect(() => {
     if (isUpdateMode && selectedApplication) {
-      setPet(selectedApplication.pet?._id || selectedApplication.pet || '');
-      setMessage(selectedApplication.message || '');
-      setStatus(selectedApplication.status || 'pending');
+      form.setValues({
+        pet: selectedApplication.pet?._id || selectedApplication.pet || '',
+        message: selectedApplication.message || '',
+        status: selectedApplication.status || 'pending',
+      });
     } else {
-      setPet('');
-      setMessage('');
-      setStatus('pending');
+      form.reset();
     }
   }, [isUpdateMode, selectedApplication, opened]);
 
   const handleSubmit = () => {
+    if (form.validate().hasErrors) return;
+
     const token = localStorage.getItem('jwt');
     let applicant = null;
 
@@ -31,7 +46,7 @@ function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, p
       }
     }
 
-    const appData = { pet, message, status, applicant };
+    const appData = { ...form.values, applicant };
     if (isUpdateMode) {
       onUpdate(appData);
     } else {
@@ -39,23 +54,40 @@ function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, p
     }
   };
 
+  const token = localStorage.getItem('jwt');
+  if (!token && opened && !isUpdateMode) {
+    return (
+      <Modal opened={opened} onClose={onClose} title="New Application">
+        <Alert color="yellow">You must be logged in to submit an application.</Alert>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={onClose}>Close</Button>
+        </Group>
+      </Modal>
+    );
+  }
+
   return (
     <Modal opened={opened} onClose={onClose} title={isUpdateMode ? 'Update Application' : 'New Application'}>
       <Select
         label="Pet"
-        value={pet}
-        onChange={setPet}
+        description="Select the pet you want to adopt"
         data={pets.map((p) => ({ value: p._id, label: `${p.name} (${p.species})` }))}
+        {...form.getInputProps('pet')}
         required
       />
-      <Textarea label="Message" mt="sm" value={message} onChange={(e) => setMessage(e.target.value)} required />
+      <Textarea
+        label="Message"
+        description="Tell us why you'd like to adopt this pet (min 10 characters)"
+        mt="sm"
+        {...form.getInputProps('message')}
+        required
+      />
       {isUpdateMode && (
         <Select
           label="Status"
           mt="sm"
-          value={status}
-          onChange={setStatus}
           data={['pending', 'approved', 'rejected']}
+          {...form.getInputProps('status')}
         />
       )}
       <Group justify="flex-end" mt="md">

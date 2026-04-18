@@ -1,45 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Modal, TextInput, Textarea, Button, Group } from '@mantine/core';
+import { useForm } from '@mantine/form';
 
 function ShelterForm({ opened, onClose, isUpdateMode, selectedShelter, onCreate, onUpdate }) {
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [description, setDescription] = useState('');
+  const form = useForm({
+    initialValues: {
+      name: '',
+      address: '',
+      phone: '',
+      email: '',
+      description: '',
+    },
+    validate: {
+      name: (value) => (value.length === 0 ? 'Name is required' : null),
+      address: (value) => (value.length === 0 ? 'Address is required' : null),
+      phone: (value) => (value.length === 0 ? 'Phone is required' : null),
+      email: (value) => {
+        if (value.length === 0) return 'Email is required';
+        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Must be a valid email address';
+        return null;
+      },
+    },
+  });
 
   useEffect(() => {
     if (isUpdateMode && selectedShelter) {
-      setName(selectedShelter.name || '');
-      setAddress(selectedShelter.address || '');
-      setPhone(selectedShelter.phone || '');
-      setEmail(selectedShelter.email || '');
-      setDescription(selectedShelter.description || '');
+      form.setValues({
+        name: selectedShelter.name || '',
+        address: selectedShelter.address || '',
+        phone: selectedShelter.phone || '',
+        email: selectedShelter.email || '',
+        description: selectedShelter.description || '',
+      });
     } else {
-      setName('');
-      setAddress('');
-      setPhone('');
-      setEmail('');
-      setDescription('');
+      form.reset();
     }
   }, [isUpdateMode, selectedShelter, opened]);
 
   const handleSubmit = () => {
-    const shelterData = { name, address, phone, email, description };
+    if (form.validate().hasErrors) return;
     if (isUpdateMode) {
-      onUpdate(shelterData);
+      onUpdate(form.values);
     } else {
-      onCreate(shelterData);
+      onCreate(form.values);
     }
   };
 
   return (
     <Modal opened={opened} onClose={onClose} title={isUpdateMode ? 'Update Shelter' : 'Add Shelter'}>
-      <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-      <TextInput label="Address" mt="sm" value={address} onChange={(e) => setAddress(e.target.value)} required />
-      <TextInput label="Phone" mt="sm" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-      <TextInput label="Email" mt="sm" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      <Textarea label="Description" mt="sm" value={description} onChange={(e) => setDescription(e.target.value)} />
+      <TextInput label="Name" description="Shelter name" {...form.getInputProps('name')} required />
+      <TextInput label="Address" description="Full street address" mt="sm" {...form.getInputProps('address')} required />
+      <TextInput label="Phone" description="Contact phone number" mt="sm" {...form.getInputProps('phone')} required />
+      <TextInput label="Email" description="Contact email address" mt="sm" {...form.getInputProps('email')} required />
+      <Textarea label="Description" description="Optional description of the shelter" mt="sm" {...form.getInputProps('description')} />
       <Group justify="flex-end" mt="md">
         <Button variant="default" onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit}>{isUpdateMode ? 'Update' : 'Create'}</Button>

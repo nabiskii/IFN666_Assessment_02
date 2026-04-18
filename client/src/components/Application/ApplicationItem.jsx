@@ -19,8 +19,8 @@ function ApplicationItem({ application, onEdit, onDelete }) {
       <Text size="sm" mt="xs">{application.message}</Text>
       <Group mt="md">
         <Button variant="outline" size="xs" component={Link} to={`/applications/${application._id}`}>View</Button>
-        <Button variant="outline" size="xs" onClick={() => onEdit(application)}>Edit</Button>
-        <Button variant="outline" size="xs" color="red" onClick={() => onDelete(application)}>Delete</Button>
+        {onEdit && <Button variant="outline" size="xs" onClick={() => onEdit(application)}>Edit</Button>}
+        {onDelete && <Button variant="outline" size="xs" color="red" onClick={() => onDelete(application)}>Delete</Button>}
       </Group>
     </Card>
   );
