@@ -30,8 +30,7 @@ function Login() {
 
       const { token } = await response.json();
       localStorage.setItem('jwt', token);
-      navigate('/');
-      window.location.reload();
+      window.location.href = '/assignment2/';
     } catch (err) {
       setError(err.message);
     } finally {

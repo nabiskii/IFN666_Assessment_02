@@ -49,8 +49,8 @@ function Applications() {
       ]);
       const appsData = await appsRes.json();
       const petsData = await petsRes.json();
-      setApplications(appsData);
-      setPets(petsData);
+      setApplications(Array.isArray(appsData) ? appsData : []);
+      setPets(Array.isArray(petsData) ? petsData : []);
     } catch (err) {
       setError('Failed to fetch applications');
     } finally {
