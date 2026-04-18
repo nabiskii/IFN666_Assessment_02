@@ -3,12 +3,15 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AppShell, Group, Container, Anchor, Text, Button, Burger, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
-const links = [
+const publicLinks = [
   { link: '/', label: 'Home' },
   { link: '/shelters', label: 'Shelters' },
   { link: '/pets', label: 'Pets' },
-  { link: '/applications', label: 'Applications' },
   { link: '/about', label: 'About' },
+];
+
+const authLinks = [
+  { link: '/applications', label: 'My Applications' },
 ];
 
 function Layout() {
@@ -20,7 +23,7 @@ function Layout() {
   useEffect(() => {
     const token = localStorage.getItem('jwt');
     setIsAuthenticated(!!token);
-  }, []);
+  }, [location]);
 
   const handleLogout = () => {
     localStorage.removeItem('jwt');
@@ -28,6 +31,8 @@ function Layout() {
     close();
     navigate('/');
   };
+
+  const links = isAuthenticated ? [...publicLinks, ...authLinks] : publicLinks;
 
   const items = links.map((link) => (
     <Anchor
@@ -37,6 +42,7 @@ function Layout() {
       onClick={close}
       c={location.pathname === link.link ? 'blue' : 'dimmed'}
       size="sm"
+      fw={location.pathname === link.link ? 600 : 400}
     >
       {link.label}
     </Anchor>
@@ -51,16 +57,18 @@ function Layout() {
       <AppShell.Header>
         <Container size="lg" h="100%">
           <Group h="100%" justify="space-between">
-            <Text size="xl" fw={700}>PawMatch</Text>
-            <Group gap="xs" visibleFrom="sm">
+            <Anchor component={Link} to="/" underline="never">
+              <Text size="xl" fw={800} c="blue">PawMatch</Text>
+            </Anchor>
+            <Group gap="md" visibleFrom="sm">
               {items}
               {!isAuthenticated ? (
-                <>
-                  <Anchor component={Link} to="/login" size="sm">Login</Anchor>
-                  <Anchor component={Link} to="/register" size="sm">Register</Anchor>
-                </>
+                <Group gap="xs">
+                  <Button variant="subtle" size="xs" component={Link} to="/login">Login</Button>
+                  <Button size="xs" component={Link} to="/register">Register</Button>
+                </Group>
               ) : (
-                <Button variant="subtle" size="xs" onClick={handleLogout}>Logout</Button>
+                <Button variant="subtle" size="xs" color="red" onClick={handleLogout}>Logout</Button>
               )}
             </Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
@@ -77,7 +85,7 @@ function Layout() {
               <Anchor component={Link} to="/register" size="sm" onClick={close}>Register</Anchor>
             </>
           ) : (
-            <Button variant="subtle" size="xs" onClick={handleLogout}>Logout</Button>
+            <Button variant="subtle" size="xs" color="red" onClick={handleLogout}>Logout</Button>
           )}
         </Stack>
       </AppShell.Navbar>

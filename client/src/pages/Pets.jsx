@@ -18,7 +18,14 @@ function Pets() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const isAuthenticated = !!localStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
+  const isAuthenticated = !!token;
+  const isAdmin = (() => {
+    if (!token) return false;
+    try {
+      return JSON.parse(atob(token.split('.')[1])).is_admin;
+    } catch { return false; }
+  })();
 
   const fetchPets = async () => {
     setLoading(true);
@@ -65,7 +72,6 @@ function Pets() {
   };
 
   const handleCreate = async (petData) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/pets`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -78,7 +84,6 @@ function Pets() {
   };
 
   const handleUpdate = async (petData) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/pets/${selectedPet._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -91,7 +96,6 @@ function Pets() {
   };
 
   const handleDelete = async (pet) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/pets/${pet._id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
@@ -117,13 +121,13 @@ function Pets() {
   return (
     <>
       <Title order={2} mb="md">Pets</Title>
-      <Group mb="md" grow preventGrowOverflow={false} wrap="wrap">
+      <Group mb="md" wrap="wrap">
         <TextInput
           placeholder="Search pets..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          style={{ flex: 1, minWidth: 200 }}
+          style={{ flex: 1, minWidth: 200, maxWidth: 400 }}
         />
         <Select
           value={sort}
@@ -136,15 +140,15 @@ function Pets() {
             { value: 'age', label: 'Age (Low-High)' },
             { value: '-age', label: 'Age (High-Low)' },
           ]}
-          style={{ minWidth: 150 }}
+          w={180}
         />
-        <Button onClick={handleSearch} style={{ minWidth: 100 }}>Search</Button>
+        <Button onClick={handleSearch}>Search</Button>
       </Group>
-      {isAuthenticated && <Button onClick={openCreateModal} mb="md">Add Pet</Button>}
+      {isAdmin && <Button onClick={openCreateModal} mb="md">Add Pet</Button>}
       <PetList
         pets={pets}
-        onEdit={isAuthenticated ? openUpdateModal : null}
-        onDelete={isAuthenticated ? handleDelete : null}
+        onEdit={isAdmin ? openUpdateModal : null}
+        onDelete={isAdmin ? handleDelete : null}
       />
       {totalPages > 1 && (
         <Group justify="center" mt="lg">

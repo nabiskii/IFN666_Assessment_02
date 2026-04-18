@@ -7,17 +7,28 @@ const statusColors = {
   adopted: 'blue',
 };
 
+const speciesIcons = {
+  dog: '\u{1F436}',
+  cat: '\u{1F431}',
+  bird: '\u{1F426}',
+  rabbit: '\u{1F430}',
+  other: '\u{1F43E}',
+};
+
 function PetItem({ pet, onEdit, onDelete }) {
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
+      <Text ta="center" size="3rem" mb="xs">
+        {speciesIcons[pet.species] || speciesIcons.other}
+      </Text>
       <Group justify="space-between" mb="xs">
-        <Text fw={500} size="lg">{pet.name}</Text>
+        <Text fw={600} size="lg">{pet.name}</Text>
         <Badge color={statusColors[pet.status]}>{pet.status}</Badge>
       </Group>
-      <Text size="sm" c="dimmed">{pet.species} - {pet.breed}</Text>
-      <Text size="sm" c="dimmed">Age: {pet.age} | Gender: {pet.gender}</Text>
+      <Text size="sm" c="dimmed">{pet.species} &middot; {pet.breed}</Text>
+      <Text size="sm" c="dimmed">Age: {pet.age} &middot; {pet.gender}</Text>
       <Text size="sm" c="dimmed">Shelter: {pet.shelter?.name || 'Unknown'}</Text>
-      <Text size="sm" mt="xs">{pet.description}</Text>
+      <Text size="sm" mt="xs" lineClamp={2}>{pet.description}</Text>
       <Group mt="md">
         <Button variant="outline" size="xs" component={Link} to={`/pets/${pet._id}`}>View</Button>
         {onEdit && <Button variant="outline" size="xs" onClick={() => onEdit(pet)}>Edit</Button>}

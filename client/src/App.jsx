@@ -1,4 +1,10 @@
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, createTheme } from '@mantine/core';
+
+const theme = createTheme({
+  primaryColor: 'blue',
+  defaultRadius: 'md',
+  fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
+});
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './pages/Layout';
 import Home from './pages/Home';
@@ -16,8 +22,8 @@ import '@mantine/core/styles.css';
 
 function App() {
   return (
-    <MantineProvider>
-      <BrowserRouter>
+    <MantineProvider theme={theme}>
+      <BrowserRouter basename="/assignment2">
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />

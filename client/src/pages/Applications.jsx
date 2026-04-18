@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } from '@mantine/core';
 import ApplicationList from '../components/Application/ApplicationList';
 import ApplicationForm from '../components/Application/ApplicationForm';
@@ -13,41 +14,43 @@ function Applications() {
   const [modalOpened, setModalOpened] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState('status');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const navigate = useNavigate();
 
-  const isAuthenticated = !!localStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
+
+  const getUserId = () => {
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.user_id;
+    } catch {
+      return null;
+    }
+  };
+
+  const userId = getUserId();
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    fetchApplications();
+  }, []);
 
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page, limit: 10, sort });
-      if (search) params.append('search', search);
       const [appsRes, petsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/applications?${params}`),
+        fetch(`${API_BASE_URL}/users/${userId}/applications`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
         fetch(`${API_BASE_URL}/pets`),
       ]);
       const appsData = await appsRes.json();
       const petsData = await petsRes.json();
       setApplications(appsData);
       setPets(petsData);
-
-      const linkHeader = appsRes.headers.get('Link');
-      if (linkHeader) {
-        const links = {};
-        linkHeader.split(',').forEach(link => {
-          const match = link.match(/<([^>]+)>; rel="([^"]+)"/);
-          if (match) { links[match[2]] = match[1]; }
-        });
-        if (links.last) {
-          const lastUrl = new URL(links.last, window.location.origin);
-          setTotalPages(parseInt(lastUrl.searchParams.get('page')) || 1);
-        }
-      } else {
-        setTotalPages(1);
-      }
     } catch (err) {
       setError('Failed to fetch applications');
     } finally {
@@ -55,17 +58,7 @@ function Applications() {
     }
   };
 
-  useEffect(() => {
-    fetchApplications();
-  }, [page, sort]);
-
-  const handleSearch = () => {
-    setPage(1);
-    fetchApplications();
-  };
-
   const handleCreate = async (appData) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/applications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -78,7 +71,6 @@ function Applications() {
   };
 
   const handleUpdate = async (appData) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/applications/${selectedApplication._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -91,7 +83,6 @@ function Applications() {
   };
 
   const handleDelete = async (application) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/applications/${application._id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
@@ -111,41 +102,24 @@ function Applications() {
     setModalOpened(true);
   };
 
+  if (!token) return null;
   if (loading) return <Loader />;
   if (error) return <Alert color="red">{error}</Alert>;
 
   return (
     <>
-      <Title order={2} mb="md">Adoption Applications</Title>
-      <Group mb="md" grow preventGrowOverflow={false} wrap="wrap">
-        <TextInput
-          placeholder="Search by status (pending, approved, rejected)..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          style={{ flex: 1, minWidth: 200 }}
+      <Title order={2} mb="md">My Applications</Title>
+      <Button onClick={openCreateModal} mb="md">New Application</Button>
+      {applications.length === 0 ? (
+        <Alert color="blue" variant="light">
+          You haven't submitted any adoption applications yet. Click "New Application" to get started.
+        </Alert>
+      ) : (
+        <ApplicationList
+          applications={applications}
+          onEdit={openUpdateModal}
+          onDelete={handleDelete}
         />
-        <Select
-          value={sort}
-          onChange={setSort}
-          data={[
-            { value: 'status', label: 'Status (A-Z)' },
-            { value: '-status', label: 'Status (Z-A)' },
-          ]}
-          style={{ minWidth: 150 }}
-        />
-        <Button onClick={handleSearch} style={{ minWidth: 100 }}>Search</Button>
-      </Group>
-      {isAuthenticated && <Button onClick={openCreateModal} mb="md">New Application</Button>}
-      <ApplicationList
-        applications={applications}
-        onEdit={isAuthenticated ? openUpdateModal : null}
-        onDelete={isAuthenticated ? handleDelete : null}
-      />
-      {totalPages > 1 && (
-        <Group justify="center" mt="lg">
-          <Pagination value={page} onChange={setPage} total={totalPages} />
-        </Group>
       )}
       <ApplicationForm
         opened={modalOpened}

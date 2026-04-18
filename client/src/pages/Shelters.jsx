@@ -19,7 +19,14 @@ function Shelters() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const isAuthenticated = !!localStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
+  const isAuthenticated = !!token;
+  const isAdmin = (() => {
+    if (!token) return false;
+    try {
+      return JSON.parse(atob(token.split('.')[1])).is_admin;
+    } catch { return false; }
+  })();
 
   const fetchShelters = async () => {
     setLoading(true);
@@ -74,7 +81,6 @@ function Shelters() {
   };
 
   const handleUpdate = async (shelterData) => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/shelters/${selectedShelter._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -87,7 +93,6 @@ function Shelters() {
   };
 
   const handleDelete = async () => {
-    const token = localStorage.getItem('jwt');
     const response = await fetch(`${API_BASE_URL}/shelters/${selectedShelter._id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
@@ -121,13 +126,13 @@ function Shelters() {
   return (
     <>
       <Title order={2} mb="md">Shelters</Title>
-      <Group mb="md" grow preventGrowOverflow={false} wrap="wrap">
+      <Group mb="md" wrap="wrap">
         <TextInput
           placeholder="Search shelters..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          style={{ flex: 1, minWidth: 200 }}
+          style={{ flex: 1, minWidth: 200, maxWidth: 400 }}
         />
         <Select
           value={sort}
@@ -138,15 +143,15 @@ function Shelters() {
             { value: 'address', label: 'Address (A-Z)' },
             { value: '-address', label: 'Address (Z-A)' },
           ]}
-          style={{ minWidth: 150 }}
+          w={180}
         />
-        <Button onClick={handleSearch} style={{ minWidth: 100 }}>Search</Button>
+        <Button onClick={handleSearch}>Search</Button>
       </Group>
-      {isAuthenticated && <Button onClick={openCreateModal} mb="md">Add Shelter</Button>}
+      {isAdmin && <Button onClick={openCreateModal} mb="md">Add Shelter</Button>}
       <ShelterList
         shelters={shelters}
-        onEdit={isAuthenticated ? openUpdateModal : null}
-        onDelete={isAuthenticated ? openDeleteDialog : null}
+        onEdit={isAdmin ? openUpdateModal : null}
+        onDelete={isAdmin ? openDeleteDialog : null}
       />
       {totalPages > 1 && (
         <Group justify="center" mt="lg">
