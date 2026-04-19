@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { AppShell, Group, Container, Anchor, Text, Button, Burger, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { useAuth } from '../context/AuthContext';
 
 const publicLinks = [
   { link: '/', label: 'Home' },
@@ -12,27 +12,12 @@ const publicLinks = [
 
 function Layout() {
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [opened, { toggle, close }] = useDisclosure(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    setIsAuthenticated(!!token);
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(payload.is_admin || false);
-      } catch { setIsAdmin(false); }
-    } else {
-      setIsAdmin(false);
-    }
-  }, [location]);
+  const { isAuthenticated, isAdmin, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('jwt');
-    setIsAuthenticated(false);
+    logout();
     close();
     navigate('/');
   };

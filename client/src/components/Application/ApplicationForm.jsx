@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { Modal, Select, Textarea, Button, Group, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useAuth } from '../../context/AuthContext';
 
 function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, pets, onCreate, onUpdate }) {
+  const { token, userId, isAuthenticated } = useAuth();
+
   const form = useForm({
     initialValues: {
       pet: '',
@@ -40,19 +43,7 @@ function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, p
   const handleSubmit = () => {
     if (form.validate().hasErrors) return;
 
-    const token = localStorage.getItem('jwt');
-    let applicant = null;
-
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        applicant = payload.user_id;
-      } catch (err) {
-        applicant = null;
-      }
-    }
-
-    const appData = { ...form.values, applicant };
+    const appData = { ...form.values, applicant: userId };
     if (isUpdateMode) {
       onUpdate(appData);
     } else {
@@ -60,8 +51,7 @@ function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, p
     }
   };
 
-  const token = localStorage.getItem('jwt');
-  if (!token && opened && !isUpdateMode) {
+  if (!isAuthenticated && opened && !isUpdateMode) {
     return (
       <Modal opened={opened} onClose={onClose} title="New Application">
         <Alert color="yellow">You must be logged in to submit an application.</Alert>

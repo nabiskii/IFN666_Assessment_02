@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TextInput, PasswordInput, Button, Alert, Title } from '@mantine/core';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,6 +11,7 @@ function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,8 +31,8 @@ function Login() {
       }
 
       const { token } = await response.json();
-      localStorage.setItem('jwt', token);
-      window.location.href = '/assignment2/';
+      login(token);
+      navigate('/');
     } catch (err) {
       setError(err.message);
     } finally {

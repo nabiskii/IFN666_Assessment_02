@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Title, Text, Button, SimpleGrid, Card, Group, ThemeIcon } from '@mantine/core';
+import { useAuth } from '../context/AuthContext';
 
 function Home() {
-  const isAuthenticated = !!localStorage.getItem('jwt');
+  const { isAuthenticated } = useAuth();
 
   return (
     <>

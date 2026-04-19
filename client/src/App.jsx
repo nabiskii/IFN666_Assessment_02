@@ -6,6 +6,7 @@ const theme = createTheme({
   fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
 });
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Layout from './pages/Layout';
 import Home from './pages/Home';
 import Shelters from './pages/Shelters';
@@ -24,6 +25,7 @@ function App() {
   return (
     <MantineProvider theme={theme}>
       <BrowserRouter basename="/assignment2">
+        <AuthProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
@@ -39,6 +41,7 @@ function App() {
             <Route path="*" element={<NoPage />} />
           </Route>
         </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </MantineProvider>
   )

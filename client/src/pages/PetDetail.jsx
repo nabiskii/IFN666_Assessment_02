@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, Text, Title, Badge, Loader, Alert, Group, Button, SimpleGrid, Stack } from '@mantine/core';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -22,13 +23,7 @@ function PetDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem('jwt');
-  const isAdmin = (() => {
-    if (!token) return false;
-    try {
-      return JSON.parse(atob(token.split('.')[1])).is_admin;
-    } catch { return false; }
-  })();
+  const { token, isAdmin } = useAuth();
 
   const fetchPet = async () => {
     try {

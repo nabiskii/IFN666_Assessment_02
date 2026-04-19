@@ -3,6 +3,7 @@ import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } fr
 import ShelterList from '../components/Shelter/ShelterList';
 import ShelterForm from '../components/Shelter/ShelterForm';
 import ShelterDeleteConfirm from '../components/Shelter/ShelterDeleteConfirm';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,14 +20,7 @@ function Shelters() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const token = localStorage.getItem('jwt');
-  const isAuthenticated = !!token;
-  const isAdmin = (() => {
-    if (!token) return false;
-    try {
-      return JSON.parse(atob(token.split('.')[1])).is_admin;
-    } catch { return false; }
-  })();
+  const { token, isAdmin } = useAuth();
 
   const fetchShelters = async () => {
     setLoading(true);

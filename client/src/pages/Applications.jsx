@@ -4,6 +4,7 @@ import { Button, Loader, Alert, Title, Group, Pagination } from '@mantine/core';
 import ApplicationList from '../components/Application/ApplicationList';
 import ApplicationForm from '../components/Application/ApplicationForm';
 import ApplicationDeleteConfirm from '../components/Application/ApplicationDeleteConfirm';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -20,18 +21,7 @@ function Applications() {
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  const token = localStorage.getItem('jwt');
-
-  const getPayload = () => {
-    if (!token) return null;
-    try {
-      return JSON.parse(atob(token.split('.')[1]));
-    } catch { return null; }
-  };
-
-  const payload = getPayload();
-  const userId = payload?.user_id;
-  const isAdmin = payload?.is_admin || false;
+  const { token, userId, isAdmin } = useAuth();
 
   useEffect(() => {
     if (!token) {

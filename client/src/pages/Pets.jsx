@@ -5,6 +5,7 @@ import PetList from '../components/Pet/PetList';
 import PetForm from '../components/Pet/PetForm';
 import PetDeleteConfirm from '../components/Pet/PetDeleteConfirm';
 import ApplicationForm from '../components/Application/ApplicationForm';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,14 +27,7 @@ function Pets() {
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  const token = localStorage.getItem('jwt');
-  const isAuthenticated = !!token;
-  const isAdmin = (() => {
-    if (!token) return false;
-    try {
-      return JSON.parse(atob(token.split('.')[1])).is_admin;
-    } catch { return false; }
-  })();
+  const { token, isAuthenticated, isAdmin } = useAuth();
 
   const fetchPets = async () => {
     setLoading(true);
