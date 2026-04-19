@@ -3,6 +3,7 @@ const router = express.Router();
 
 const controller = require("../controllers/applicationController");
 const authenticateWithJwt = require("../middleware/authenticateWithJwt");
+const isAdmin = require("../middleware/isAdmin");
 const validateMongoId = require("../middleware/validateMongoId");
 const validatePaginateQueryParams = require("../middleware/validatePaginateQueryParams");
 
@@ -15,7 +16,7 @@ router.route("/")
 router.route("/:id")
     .all(validateMongoId('id'))
     .get(controller.detail)
-    .put(authenticateWithJwt, controller.update)
+    .put(authenticateWithJwt, isAdmin, controller.update)
     .delete(authenticateWithJwt, controller.delete);
 
 module.exports = router;

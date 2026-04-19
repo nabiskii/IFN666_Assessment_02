@@ -1,7 +1,7 @@
 import { SimpleGrid, Text } from '@mantine/core';
 import ApplicationItem from './ApplicationItem';
 
-function ApplicationList({ applications, onEdit, onDelete }) {
+function ApplicationList({ applications, onEdit, onDelete, onApprove, onReject, isAdmin }) {
   if (applications.length === 0) return <Text>No applications found.</Text>;
 
   return (
@@ -12,6 +12,9 @@ function ApplicationList({ applications, onEdit, onDelete }) {
           application={application}
           onEdit={onEdit}
           onDelete={onDelete}
+          onApprove={onApprove}
+          onReject={onReject}
+          isAdmin={isAdmin}
         />
       ))}
     </SimpleGrid>

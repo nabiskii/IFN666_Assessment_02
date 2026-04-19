@@ -10,19 +10,24 @@ const publicLinks = [
   { link: '/about', label: 'About' },
 ];
 
-const authLinks = [
-  { link: '/applications', label: 'My Applications' },
-];
-
 function Layout() {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [opened, { toggle, close }] = useDisclosure(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('jwt');
     setIsAuthenticated(!!token);
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(payload.is_admin || false);
+      } catch { setIsAdmin(false); }
+    } else {
+      setIsAdmin(false);
+    }
   }, [location]);
 
   const handleLogout = () => {
@@ -32,6 +37,9 @@ function Layout() {
     navigate('/');
   };
 
+  const authLinks = isAdmin
+    ? [{ link: '/applications', label: 'Applications' }]
+    : [{ link: '/applications', label: 'My Applications' }];
   const links = isAuthenticated ? [...publicLinks, ...authLinks] : publicLinks;
 
   const items = links.map((link) => (

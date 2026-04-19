@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } from '@mantine/core';
+import { Button, Loader, Alert, Title, Group, Pagination } from '@mantine/core';
 import ApplicationList from '../components/Application/ApplicationList';
 import ApplicationForm from '../components/Application/ApplicationForm';
 
@@ -12,23 +12,23 @@ function Applications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalOpened, setModalOpened] = useState(false);
-  const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
   const token = localStorage.getItem('jwt');
 
-  const getUserId = () => {
+  const getPayload = () => {
     if (!token) return null;
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.user_id;
-    } catch {
-      return null;
-    }
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch { return null; }
   };
 
-  const userId = getUserId();
+  const payload = getPayload();
+  const userId = payload?.user_id;
+  const isAdmin = payload?.is_admin || false;
 
   useEffect(() => {
     if (!token) {
@@ -36,21 +36,45 @@ function Applications() {
       return;
     }
     fetchApplications();
-  }, []);
+  }, [page]);
 
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const [appsRes, petsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/users/${userId}/applications`, {
+      let appsRes;
+      if (isAdmin) {
+        const params = new URLSearchParams({ page, limit: 10 });
+        appsRes = await fetch(`${API_BASE_URL}/applications?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE_URL}/pets`),
-      ]);
+        });
+      } else {
+        appsRes = await fetch(`${API_BASE_URL}/users/${userId}/applications`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+      }
+
+      const petsRes = await fetch(`${API_BASE_URL}/pets`);
       const appsData = await appsRes.json();
       const petsData = await petsRes.json();
       setApplications(Array.isArray(appsData) ? appsData : []);
       setPets(Array.isArray(petsData) ? petsData : []);
+
+      if (isAdmin) {
+        const linkHeader = appsRes.headers.get('Link');
+        if (linkHeader) {
+          const links = {};
+          linkHeader.split(',').forEach(link => {
+            const match = link.match(/<([^>]+)>; rel="([^"]+)"/);
+            if (match) { links[match[2]] = match[1]; }
+          });
+          if (links.last) {
+            const lastUrl = new URL(links.last, window.location.origin);
+            setTotalPages(parseInt(lastUrl.searchParams.get('page')) || 1);
+          }
+        } else {
+          setTotalPages(1);
+        }
+      }
     } catch (err) {
       setError('Failed to fetch applications');
     } finally {
@@ -58,21 +82,23 @@ function Applications() {
     }
   };
 
+  const handleStatusChange = async (application, newStatus) => {
+    const response = await fetch(`${API_BASE_URL}/applications/${application._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        applicant: application.applicant?._id || application.applicant,
+        pet: application.pet?._id || application.pet,
+        status: newStatus,
+        message: application.message,
+      }),
+    });
+    if (response.ok) fetchApplications();
+  };
+
   const handleCreate = async (appData) => {
     const response = await fetch(`${API_BASE_URL}/applications`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(appData),
-    });
-    if (response.ok) {
-      setModalOpened(false);
-      fetchApplications();
-    }
-  };
-
-  const handleUpdate = async (appData) => {
-    const response = await fetch(`${API_BASE_URL}/applications/${selectedApplication._id}`, {
-      method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(appData),
     });
@@ -91,14 +117,7 @@ function Applications() {
   };
 
   const openCreateModal = () => {
-    setIsUpdateMode(false);
     setSelectedApplication(null);
-    setModalOpened(true);
-  };
-
-  const openUpdateModal = (application) => {
-    setIsUpdateMode(true);
-    setSelectedApplication(application);
     setModalOpened(true);
   };
 
@@ -108,28 +127,40 @@ function Applications() {
 
   return (
     <>
-      <Title order={2} mb="md">My Applications</Title>
-      <Button onClick={openCreateModal} mb="md">New Application</Button>
+      <Title order={2} mb="md">{isAdmin ? 'All Applications' : 'My Applications'}</Title>
+      {!isAdmin && <Button onClick={openCreateModal} mb="md">New Application</Button>}
       {applications.length === 0 ? (
         <Alert color="blue" variant="light">
-          You haven't submitted any adoption applications yet. Click "New Application" to get started.
+          {isAdmin
+            ? 'No adoption applications have been submitted yet.'
+            : 'You haven\'t submitted any adoption applications yet. Click "New Application" to get started.'}
         </Alert>
       ) : (
         <ApplicationList
           applications={applications}
-          onEdit={openUpdateModal}
-          onDelete={handleDelete}
+          onEdit={null}
+          onDelete={!isAdmin ? handleDelete : null}
+          onApprove={isAdmin ? (app) => handleStatusChange(app, 'approved') : null}
+          onReject={isAdmin ? (app) => handleStatusChange(app, 'rejected') : null}
+          isAdmin={isAdmin}
         />
       )}
-      <ApplicationForm
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
-        isUpdateMode={isUpdateMode}
-        selectedApplication={selectedApplication}
-        pets={pets}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-      />
+      {isAdmin && totalPages > 1 && (
+        <Group justify="center" mt="lg">
+          <Pagination value={page} onChange={setPage} total={totalPages} />
+        </Group>
+      )}
+      {!isAdmin && (
+        <ApplicationForm
+          opened={modalOpened}
+          onClose={() => setModalOpened(false)}
+          isUpdateMode={false}
+          selectedApplication={selectedApplication}
+          pets={pets}
+          onCreate={handleCreate}
+          onUpdate={() => {}}
+        />
+      )}
     </>
   );
 }

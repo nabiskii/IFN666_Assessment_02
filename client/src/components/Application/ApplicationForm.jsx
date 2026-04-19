@@ -26,6 +26,12 @@ function ApplicationForm({ opened, onClose, isUpdateMode, selectedApplication, p
         message: selectedApplication.message || '',
         status: selectedApplication.status || 'pending',
       });
+    } else if (selectedApplication?.pet) {
+      form.setValues({
+        pet: selectedApplication.pet?._id || selectedApplication.pet || '',
+        message: '',
+        status: 'pending',
+      });
     } else {
       form.reset();
     }

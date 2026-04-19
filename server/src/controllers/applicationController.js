@@ -174,6 +174,7 @@ exports.listByUser = asyncHandler(async (req, res) => {
 
     const applications = await Application.find({ applicant: req.params.userId })
         .populate({ path: "pet", select: "name species status" })
+        .populate({ path: "applicant", select: "username" })
         .exec();
     res.json(applications);
 });

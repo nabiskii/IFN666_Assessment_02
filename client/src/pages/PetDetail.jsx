@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Text, Title, Badge, Loader, Alert, Group, Button, SimpleGrid } from '@mantine/core';
+import { Card, Text, Title, Badge, Loader, Alert, Group, Button, SimpleGrid, Stack } from '@mantine/core';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,28 +30,42 @@ function PetDetail() {
     } catch { return false; }
   })();
 
-  useEffect(() => {
-    const fetchPet = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/pets/${id}`);
-        if (!response.ok) {
-          throw new Error('Pet not found');
-        }
-        const data = await response.json();
-        setPet(data.pet);
-
-        // Only fetch applications if admin
-        if (isAdmin) {
-          setApplications(data.applications);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchPet = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pets/${id}`);
+      if (!response.ok) {
+        throw new Error('Pet not found');
       }
-    };
+      const data = await response.json();
+      setPet(data.pet);
+
+      if (isAdmin) {
+        setApplications(data.applications);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPet();
   }, [id]);
+
+  const handleStatusChange = async (application, newStatus) => {
+    const response = await fetch(`${API_BASE_URL}/applications/${application._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        applicant: application.applicant?._id || application.applicant,
+        pet: application.pet || id,
+        status: newStatus,
+        message: application.message,
+      }),
+    });
+    if (response.ok) fetchPet();
+  };
 
   if (loading) return <Loader />;
   if (error) return <Alert color="red">{error}</Alert>;
@@ -69,16 +83,16 @@ function PetDetail() {
           <Title order={2}>{pet.name}</Title>
           <Badge color={statusColors[pet.status]} size="lg">{pet.status}</Badge>
         </Group>
-        <Text size="sm" c="dimmed">Species: {pet.species}</Text>
-        <Text size="sm" c="dimmed">Breed: {pet.breed}</Text>
-        <Text size="sm" c="dimmed">Age: {pet.age}</Text>
-        <Text size="sm" c="dimmed">Gender: {pet.gender}</Text>
-        {pet.shelter && (
-          <Text size="sm" c="dimmed">
-            Shelter: <Link to={`/shelters/${pet.shelter._id}`}>{pet.shelter.name}</Link>
-          </Text>
-        )}
-        <Text size="sm" mt="xs">{pet.description}</Text>
+        <Stack gap={4}>
+          <Text size="sm" c="dimmed">{pet.species}, {pet.breed}</Text>
+          <Text size="sm" c="dimmed">{pet.age} years old, {pet.gender}</Text>
+          {pet.shelter && (
+            <Text size="sm" c="dimmed">
+              <Link to={`/shelters/${pet.shelter._id}`}>{pet.shelter.name}</Link>
+            </Text>
+          )}
+        </Stack>
+        <Text size="sm" mt="sm">{pet.description}</Text>
       </Card>
 
       {isAdmin && (
@@ -91,12 +105,18 @@ function PetDetail() {
               {applications.map((app) => (
                 <Card shadow="sm" padding="lg" radius="md" withBorder key={app._id}>
                   <Group justify="space-between" mb="xs">
-                    <Text fw={500}>Application</Text>
+                    <Text fw={500}>{app.applicant?.username || 'Unknown'}</Text>
                     <Badge color={appStatusColors[app.status]}>{app.status}</Badge>
                   </Group>
-                  <Text size="sm" c="dimmed">Applicant: {app.applicant?.username || 'Unknown'}</Text>
-                  <Text size="sm" mt="xs">{app.message}</Text>
-                  <Button variant="outline" size="xs" mt="md" component={Link} to={`/applications/${app._id}`}>View</Button>
+                  <Text size="sm" mt="xs" lineClamp={3}>{app.message}</Text>
+                  <Group mt="md">
+                    {app.status === 'pending' && (
+                      <>
+                        <Button size="xs" color="green" onClick={() => handleStatusChange(app, 'approved')}>Approve</Button>
+                        <Button size="xs" color="red" variant="outline" onClick={() => handleStatusChange(app, 'rejected')}>Reject</Button>
+                      </>
+                    )}
+                  </Group>
                 </Card>
               ))}
             </SimpleGrid>

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } from '@mantine/core';
 import PetList from '../components/Pet/PetList';
 import PetForm from '../components/Pet/PetForm';
+import ApplicationForm from '../components/Application/ApplicationForm';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -11,12 +13,15 @@ function Pets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalOpened, setModalOpened] = useState(false);
+  const [appModalOpened, setAppModalOpened] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
+  const [preselectedPet, setPreselectedPet] = useState(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('name');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const navigate = useNavigate();
 
   const token = localStorage.getItem('jwt');
   const isAuthenticated = !!token;
@@ -115,6 +120,28 @@ function Pets() {
     setModalOpened(true);
   };
 
+  const handleApply = (pet) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setPreselectedPet(pet);
+    setAppModalOpened(true);
+  };
+
+  const handleCreateApplication = async (appData) => {
+    const response = await fetch(`${API_BASE_URL}/applications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(appData),
+    });
+    if (response.ok) {
+      setAppModalOpened(false);
+      setPreselectedPet(null);
+      navigate('/applications');
+    }
+  };
+
   if (loading) return <Loader />;
   if (error) return <Alert color="red">{error}</Alert>;
 
@@ -149,6 +176,7 @@ function Pets() {
         pets={pets}
         onEdit={isAdmin ? openUpdateModal : null}
         onDelete={isAdmin ? handleDelete : null}
+        onApply={!isAdmin ? handleApply : null}
       />
       {totalPages > 1 && (
         <Group justify="center" mt="lg">
@@ -163,6 +191,15 @@ function Pets() {
         shelters={shelters}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
+      />
+      <ApplicationForm
+        opened={appModalOpened}
+        onClose={() => { setAppModalOpened(false); setPreselectedPet(null); }}
+        isUpdateMode={false}
+        selectedApplication={preselectedPet ? { pet: preselectedPet._id } : null}
+        pets={pets}
+        onCreate={handleCreateApplication}
+        onUpdate={() => {}}
       />
     </>
   );
