@@ -1,1 +1,1 @@
-/usr/bin/node --env-file=/home/ubuntu/pawmatch-api/.env /home/ubuntu/pawmatch-api/server.js
+/usr/bin/node --env-file=/home/ubuntu/a02/IFN666_Assessment_02/server/.env /home/ubuntu/a02/IFN666_Assessment_02/server/server.js
