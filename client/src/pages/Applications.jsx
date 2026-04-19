@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Loader, Alert, Title, Group, Pagination } from '@mantine/core';
 import ApplicationList from '../components/Application/ApplicationList';
 import ApplicationForm from '../components/Application/ApplicationForm';
+import ApplicationDeleteConfirm from '../components/Application/ApplicationDeleteConfirm';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -13,6 +14,8 @@ function Applications() {
   const [error, setError] = useState(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [deleteDialogOpened, setDeleteDialogOpened] = useState(false);
+  const [appToDelete, setAppToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
@@ -108,12 +111,20 @@ function Applications() {
     }
   };
 
-  const handleDelete = async (application) => {
-    const response = await fetch(`${API_BASE_URL}/applications/${application._id}`, {
+  const openDeleteDialog = (application) => {
+    setAppToDelete(application);
+    setDeleteDialogOpened(true);
+  };
+
+  const handleDelete = async () => {
+    const response = await fetch(`${API_BASE_URL}/applications/${appToDelete._id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     });
-    if (response.ok) fetchApplications();
+    if (response.ok) {
+      setDeleteDialogOpened(false);
+      fetchApplications();
+    }
   };
 
   const openCreateModal = () => {
@@ -139,7 +150,7 @@ function Applications() {
         <ApplicationList
           applications={applications}
           onEdit={null}
-          onDelete={!isAdmin ? handleDelete : null}
+          onDelete={!isAdmin ? openDeleteDialog : null}
           onApprove={isAdmin ? (app) => handleStatusChange(app, 'approved') : null}
           onReject={isAdmin ? (app) => handleStatusChange(app, 'rejected') : null}
           isAdmin={isAdmin}
@@ -150,6 +161,11 @@ function Applications() {
           <Pagination value={page} onChange={setPage} total={totalPages} />
         </Group>
       )}
+      <ApplicationDeleteConfirm
+        opened={deleteDialogOpened}
+        onClose={() => setDeleteDialogOpened(false)}
+        onConfirm={handleDelete}
+      />
       {!isAdmin && (
         <ApplicationForm
           opened={modalOpened}

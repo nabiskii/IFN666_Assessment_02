@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Loader, Alert, Title, TextInput, Select, Group, Pagination } from '@mantine/core';
 import PetList from '../components/Pet/PetList';
 import PetForm from '../components/Pet/PetForm';
+import PetDeleteConfirm from '../components/Pet/PetDeleteConfirm';
 import ApplicationForm from '../components/Application/ApplicationForm';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -17,6 +18,8 @@ function Pets() {
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedPet, setSelectedPet] = useState(null);
   const [preselectedPet, setPreselectedPet] = useState(null);
+  const [deleteDialogOpened, setDeleteDialogOpened] = useState(false);
+  const [petToDelete, setPetToDelete] = useState(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('name');
   const [page, setPage] = useState(1);
@@ -100,12 +103,20 @@ function Pets() {
     }
   };
 
-  const handleDelete = async (pet) => {
-    const response = await fetch(`${API_BASE_URL}/pets/${pet._id}`, {
+  const openDeleteDialog = (pet) => {
+    setPetToDelete(pet);
+    setDeleteDialogOpened(true);
+  };
+
+  const handleDelete = async () => {
+    const response = await fetch(`${API_BASE_URL}/pets/${petToDelete._id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     });
-    if (response.ok) fetchPets();
+    if (response.ok) {
+      setDeleteDialogOpened(false);
+      fetchPets();
+    }
   };
 
   const openCreateModal = () => {
@@ -175,7 +186,7 @@ function Pets() {
       <PetList
         pets={pets}
         onEdit={isAdmin ? openUpdateModal : null}
-        onDelete={isAdmin ? handleDelete : null}
+        onDelete={isAdmin ? openDeleteDialog : null}
         onApply={!isAdmin ? handleApply : null}
       />
       {totalPages > 1 && (
@@ -191,6 +202,11 @@ function Pets() {
         shelters={shelters}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
+      />
+      <PetDeleteConfirm
+        opened={deleteDialogOpened}
+        onClose={() => setDeleteDialogOpened(false)}
+        onConfirm={handleDelete}
       />
       <ApplicationForm
         opened={appModalOpened}
