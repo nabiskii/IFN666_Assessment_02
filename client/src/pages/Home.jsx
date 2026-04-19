@@ -35,7 +35,7 @@ function Home() {
           </ThemeIcon>
           <Text fw={600} size="lg" mb="xs">Meet Pets</Text>
           <Text size="sm" c="dimmed">
-            Dogs, cats, birds, rabbits and more — find the perfect pet waiting for a loving home.
+            Dogs, cats, birds, rabbits and more. Find the perfect pet waiting for a loving home.
           </Text>
         </Card>
 

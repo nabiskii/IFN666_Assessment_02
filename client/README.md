@@ -38,7 +38,7 @@ The app runs at `http://localhost:5173/assignment2/`.
 npm run build
 ```
 
-Output goes to `dist/` — deploy these static files to your web server.
+Output goes to `dist/`. Deploy these static files to your web server.
 
 ## Features
 
