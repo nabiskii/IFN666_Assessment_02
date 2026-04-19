@@ -1,0 +1,21 @@
+lamington02.ifn666.com {
+    handle /assignment2/api/* {
+        uri strip_prefix /assignment2
+        reverse_proxy localhost:4000
+    }
+
+    handle /assignment2 {
+        redir * /assignment2/ 308
+    }
+
+    handle_path /assignment2/* {
+        root /var/www/html/assignment2
+        try_files {path} /index.html
+        file_server
+    }
+
+    log {
+        output file /var/www/html/access.log
+        format json
+    }
+}
