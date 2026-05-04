@@ -11,6 +11,10 @@ function PetForm({ opened, onClose, isUpdateMode, selectedPet, shelters, onCreat
       age: 0,
       gender: '',
       description: '',
+      personality: '',
+      likes: '',
+      dislikes: '',
+      imageUrl: '',
       status: 'available',
       shelter: '',
     },
@@ -22,6 +26,10 @@ function PetForm({ opened, onClose, isUpdateMode, selectedPet, shelters, onCreat
       gender: (value) => (value ? null : 'Gender is required'),
       description: (value) => (value.length === 0 ? 'Description is required' : null),
       shelter: (value) => (value ? null : 'Shelter is required'),
+      imageUrl: (value) => {
+        if (value && !/^https?:\/\/.+/.test(value)) return 'Must be a valid URL';
+        return null;
+      },
     },
   });
 
@@ -34,6 +42,10 @@ function PetForm({ opened, onClose, isUpdateMode, selectedPet, shelters, onCreat
         age: selectedPet.age || 0,
         gender: selectedPet.gender || '',
         description: selectedPet.description || '',
+        personality: selectedPet.personality || '',
+        likes: selectedPet.likes || '',
+        dislikes: selectedPet.dislikes || '',
+        imageUrl: selectedPet.imageUrl || '',
         status: selectedPet.status || 'available',
         shelter: selectedPet.shelter?._id || selectedPet.shelter || '',
       });
@@ -71,7 +83,11 @@ function PetForm({ opened, onClose, isUpdateMode, selectedPet, shelters, onCreat
         {...form.getInputProps('gender')}
         required
       />
-      <Textarea label="Description" description="Describe the pet's personality and needs" mt="sm" {...form.getInputProps('description')} required />
+      <Textarea label="Description" description="Describe the pet" mt="sm" {...form.getInputProps('description')} required />
+      <TextInput label="Personality" description="e.g. Playful, loyal, calm" mt="sm" {...form.getInputProps('personality')} />
+      <TextInput label="Likes" description="Comma separated, e.g. Belly rubs, swimming, fetch" mt="sm" {...form.getInputProps('likes')} />
+      <TextInput label="Dislikes" description="Comma separated, e.g. Loud noises, being alone" mt="sm" {...form.getInputProps('dislikes')} />
+      <TextInput label="Image URL" description="Link to a photo of the pet" mt="sm" {...form.getInputProps('imageUrl')} />
       <Select
         label="Status"
         mt="sm"
