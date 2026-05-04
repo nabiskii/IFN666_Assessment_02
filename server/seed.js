@@ -71,48 +71,80 @@ async function seed() {
   const p1 = await Pet.create({
     name: "Buddy", species: "dog", breed: "Golden Retriever", age: 3, gender: "male",
     description: "Friendly and energetic golden retriever who loves walks, swimming, and belly rubs. Great with kids.",
+    personality: "Outgoing, loyal, always happy to see you",
+    likes: "Belly rubs, swimming, fetch, car rides",
+    dislikes: "Being left alone, thunderstorms",
+    imageUrl: "https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=800",
     status: "available", shelter: s1._id,
   });
 
   const p2 = await Pet.create({
     name: "Luna", species: "cat", breed: "Domestic Shorthair", age: 2, gender: "female",
     description: "Calm and affectionate indoor cat. Loves lounging in sunny spots and gentle cuddles.",
+    personality: "Independent, curious, gentle",
+    likes: "Sunny windowsills, chin scratches, string toys",
+    dislikes: "Loud music, being picked up suddenly",
+    imageUrl: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800",
     status: "available", shelter: s1._id,
   });
 
   const p3 = await Pet.create({
     name: "Max", species: "dog", breed: "German Shepherd", age: 4, gender: "male",
     description: "Loyal and intelligent shepherd. Well trained, knows basic commands. Needs an active owner.",
+    personality: "Protective, smart, eager to please",
+    likes: "Running, training sessions, hiking",
+    dislikes: "Small spaces, strangers at first",
+    imageUrl: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=800",
     status: "available", shelter: s2._id,
   });
 
   const p4 = await Pet.create({
     name: "Coco", species: "rabbit", breed: "Holland Lop", age: 1, gender: "female",
     description: "Adorable lop-eared bunny. Very social and loves being held. Perfect for families.",
+    personality: "Sweet, playful, cuddly",
+    likes: "Being held, fresh vegetables, exploring",
+    dislikes: "Sudden movements, cold floors",
+    imageUrl: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=800",
     status: "available", shelter: s2._id,
   });
 
   const p5 = await Pet.create({
     name: "Kiwi", species: "bird", breed: "Cockatiel", age: 2, gender: "male",
     description: "Playful cockatiel who can whistle tunes. Hand-raised and very tame.",
+    personality: "Chatty, entertaining, social",
+    likes: "Whistling, head scratches, mirrors",
+    dislikes: "Being ignored, dark rooms",
+    imageUrl: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=800",
     status: "available", shelter: s3._id,
   });
 
   const p6 = await Pet.create({
     name: "Milo", species: "cat", breed: "Ragdoll", age: 5, gender: "male",
     description: "Gentle giant who gets along with other cats and dogs. Very relaxed temperament.",
+    personality: "Laid-back, affectionate, easygoing",
+    likes: "Lap time, brushing, other pets",
+    dislikes: "Vacuum cleaners, being alone too long",
+    imageUrl: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800",
     status: "pending", shelter: s3._id,
   });
 
   const p7 = await Pet.create({
     name: "Bella", species: "dog", breed: "Labrador Mix", age: 2, gender: "female",
     description: "Sweet and playful lab mix rescued from the streets. Loves fetch and learning new tricks.",
+    personality: "Energetic, loving, quick learner",
+    likes: "Fetch, treats, learning tricks, water",
+    dislikes: "Crates, being scolded",
+    imageUrl: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800",
     status: "adopted", shelter: s1._id,
   });
 
   const p8 = await Pet.create({
     name: "Whiskers", species: "cat", breed: "Tabby", age: 7, gender: "male",
     description: "Senior tabby looking for a quiet home. Indoor only. Very affectionate once comfortable.",
+    personality: "Calm, wise, loyal once bonded",
+    likes: "Quiet evenings, warm blankets, gentle pets",
+    dislikes: "Children, other cats, loud environments",
+    imageUrl: "https://images.unsplash.com/photo-1526336024174-e58f5cdd8e13?w=800",
     status: "available", shelter: s2._id,
   });
 

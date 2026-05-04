@@ -28,6 +28,18 @@ const petSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    personality: {
+        type: String,
+    },
+    likes: {
+        type: String,
+    },
+    dislikes: {
+        type: String,
+    },
+    imageUrl: {
+        type: String,
+    },
     status: {
         type: String,
         enum: ['available', 'pending', 'adopted'],

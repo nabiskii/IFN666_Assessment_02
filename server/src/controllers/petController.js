@@ -27,6 +27,18 @@ const petValidator = () => {
         body('description')
             .notEmpty().withMessage('Description is required')
             .isString().withMessage('Description must be a string'),
+        body('personality')
+            .optional()
+            .isString().withMessage('Personality must be a string'),
+        body('likes')
+            .optional()
+            .isString().withMessage('Likes must be a string'),
+        body('dislikes')
+            .optional()
+            .isString().withMessage('Dislikes must be a string'),
+        body('imageUrl')
+            .optional()
+            .isURL().withMessage('Must be a valid URL'),
         body('status')
             .optional()
             .isIn(['available', 'pending', 'adopted'])
@@ -111,6 +123,10 @@ exports.create = [
             age: req.body.age,
             gender: req.body.gender,
             description: req.body.description,
+            personality: req.body.personality,
+            likes: req.body.likes,
+            dislikes: req.body.dislikes,
+            imageUrl: req.body.imageUrl,
             status: req.body.status || 'available',
             shelter: req.body.shelter,
         });
@@ -150,6 +166,10 @@ exports.update = [
                     age: req.body.age,
                     gender: req.body.gender,
                     description: req.body.description,
+                    personality: req.body.personality,
+                    likes: req.body.likes,
+                    dislikes: req.body.dislikes,
+                    imageUrl: req.body.imageUrl,
                     status: req.body.status,
                     shelter: req.body.shelter,
                 }
